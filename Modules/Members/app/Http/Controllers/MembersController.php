@@ -11,12 +11,12 @@ use Carbon\Carbon;
 use Modules\Members\Enums\ClubStatus;
 use Log;
 use Modules\Members\Models\UserSync;
-use App\Mail\MembersContact;
 use App\Mail\MembersClubStatusChange;
 use App\Mail\MembersHonorary;
 use App\Mail\AcceptedMember;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
+use Modules\Members\Events\NewMember;
 
 class MembersController extends Controller
 {
@@ -56,7 +56,8 @@ class MembersController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
+     * Eventcall NewMember
+     * 
      * @author AutiCodes
      * @param Request $request
      * @return RedirectResponse
@@ -114,54 +115,19 @@ class MembersController extends Controller
                         ->withErrors(['error' => 'Iets ging er mis! Contacteer Kelvin voor meer informatie. Foutmelding: ' . $exception->getMessage()]);
         }
 
-        $usernameWP = strtok($validated['name'], ' ');
-        $userPasswordWP = bin2hex(random_bytes(10));
-
-        try {
-            UserSync::syncNewUser($usernameWP, $userPasswordWP, $validated['name'], $validated['email'], $validated['name']);
-        } catch (\Exception $exception) {
-            Log::error($exception->getMessage());
-            return redirect()
-                    ->back()
-                    ->withErrors(['error' => 'Iets ging er mis! Contacteer Kelvin voor meer informatie. Foutmelding: ' . $exception->getMessage()]);
-        }
-
         Log::channel('user_activity')->info('Member '. $validated['name'] . 'has been added by '. auth()->user()->name);
 
-        switch ($validated['club_status']) {
-            case ClubStatus::ASPIRANT_MEMBER->value:
-                $club_status = 'Aspirant lid';
-                break;
-            case ClubStatus::MEMBER->value:
-                $club_status = 'lid';
-                break;
-            case ClubStatus::MANAGEMENT->value:
-                $club_status = 'Bestuur';
-                break;
-            case ClubStatus::DONOR->value:
-                $club_status = 'Donateur';
-                break;
-        }
-
-        // If the member is a member, send a mail to the member
-        if ($validated['club_status'] != ClubStatus::NOT_YET_MEMBER->value) {
-            Mail::to($validated['email'])->send(new MembersContact($validated['name'], $club_status, $usernameWP, $userPasswordWP));
-            return redirect(route('members.index'))->with('success', "Het lid is toegevoegd! Login gegevens voor WP: Gebruikersnaam: $usernameWP, wachtwoord: $userPasswordWP");
-        }
-        // If the member is not a new registration, send a mail to the member
-        if ($validated['club_status'] != ClubStatus::NEW_REGISTRATION->value) {
-            return redirect(route('members.index'))->with('success', "Het lid is toegevoegd! Account op Wordpress is aangemaakt maar de gegevens zijn niet gedeeld. Ook is er geen mail verzonden.");
-        }
+        event(new NewMember($member));
 
         // If the member is a new registration or not yet member, redirect back with text
-        return redirect(route('members.index'))->with('success', "Het lid is toegevoegd! Account op Wordpress is aangemaakt maar de gegevens zijn niet gedeeld. Ook is er geen mail verzonden.");
+        return redirect(route('members.index'))->with('success', "Het lid is toegevoegd!");
     }
 
     /**
      * Show the specified resource.
-     * 
+     *
+     * @author AutiCodes
      * @param int $id the id of the member
-     * @author KelvinCodes
      * @return View
      */
     public function show($id)
@@ -177,9 +143,9 @@ class MembersController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     * 
+     *
+     * @author AutiCodes
      * @param int $id the id of the member
-     * @author KelvinCodes
      * @return View
      */
     public function edit($id)
@@ -195,9 +161,10 @@ class MembersController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * 
+     *
+     * TODO: Make new WP acc
+     * @author AutiCodes
      * @param Request $request
-     * @author KelvinCodes
      * @return RedirectResponse
      */
     public function update(Request $request, $id)
@@ -346,9 +313,9 @@ class MembersController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * 
+     *
+     * @author AutiCodes
      * @param int $id the id of the member
-     * @author KelvinCodes
      * @return RedirectResponse
      */
     public function destroy($id)
@@ -387,8 +354,8 @@ class MembersController extends Controller
 
     /**
      * Export members to PDF
-     * 
-     * @author KelvinCodes
+     *
+     * @author AutiCodes
      * @return PDF
     */
     public function exportPDF()
@@ -397,5 +364,14 @@ class MembersController extends Controller
         $pdf = PDF::loadView('members::pages.export_members_pdf.blade.php', compact('members'));
 
         return $pdf->stream('vluchten.pdf');
+    }
+
+    public function testing()
+    {
+        $member = Member::find(1);
+
+        event(new NewMember($member));
+
+        return 'boobs';
     }
 }

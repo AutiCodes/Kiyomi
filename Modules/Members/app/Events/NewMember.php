@@ -14,12 +14,14 @@ class NewMember
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    public $member;
+    
     /**
      * Create a new event instance.
      */
-    public function __construct()
+    public function __construct($member)
     {
-        //
+        $this->member = $member;
     }
 
     /**

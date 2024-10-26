@@ -3,6 +3,9 @@
 namespace Modules\Members\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Modules\Members\Events\NewMember;
+use Modules\Members\Listeners\CreateWPAccount;
+use Modules\Members\Listeners\SendNewMemberEmail;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -11,7 +14,12 @@ class EventServiceProvider extends ServiceProvider
      *
      * @var array<string, array<int, string>>
      */
-    protected $listen = [];
+    protected $listen = [
+        NewMember::class => [
+            SendNewMemberEmail::class,
+            CreateWPAccount::class,
+        ]
+    ];
 
     /**
      * Indicates if events should be discovered.
@@ -19,14 +27,4 @@ class EventServiceProvider extends ServiceProvider
      * @var bool
      */
     protected static $shouldDiscoverEvents = true;
-
-    /**
-     * Configure the proper event listeners for email verification.
-     *
-     * @return void
-     */
-    protected function configureEmailVerification(): void
-    {
-
-    }
 }

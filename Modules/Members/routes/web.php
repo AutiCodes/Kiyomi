@@ -19,3 +19,4 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('leden/verwijder/{id}', [MembersController::class, 'destroy']);
 });
 
+Route::get('testing-event', [MembersController::class, 'testing']);

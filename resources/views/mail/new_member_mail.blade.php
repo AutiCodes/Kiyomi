@@ -23,14 +23,26 @@
           <tr>
             <td class="body" style="padding: 40px; text-align: left; font-size: 18px; line-height: 1.6;">
                 Beste {{ $name }},<br>
-                Je bent zojuist toegevoegd aan de Twentse Radio Modelvlieg Club als {{ $club_status }}!
+                Je bent zojuist toegevoegd aan de Twentse Radio Modelvlieg Club als
+                @switch($club_status)
+                  @case(\Modules\Members\Enums\ClubStatus::ASPIRANT_MEMBER->value)
+                    Aspirant lid
+                    @break
+                  @case(\Modules\Members\Enums\ClubStatus::JUNIOR_MEMBER->value)
+                    Junior lid
+                    @break
+                  @case(\Modules\Members\Enums\ClubStatus::MEMBER->value)
+                    Lid
+                    @break
+                  @case(\Modules\Members\Enums\ClubStatus::DONOR->value)
+                    Donateur
+                    @break
+                  @case(\Modules\Members\Enums\ClubStatus::MANAGEMENT->value)
+                  Bestuur
+                    @break
+                @endswitch
+                {{ $club_status }}!
                 <br><br>
-                Je hebt logingegevens gekregen om in te loggen op <a href="https://trmc.nl">trmc.nl</a>:<br><br>
-                <strong>Gebruikersnaam:</strong> {{ $username }}<br>
-                <strong>Wachtwoord:</strong> {{ $password }}<br>
-                <small style="color: red">Wijzig je wachtwoord direct!</small><br><br>
-
-                We wensen je veel plezier toe als lid van TRMC!
             </td>
           </tr>
 
