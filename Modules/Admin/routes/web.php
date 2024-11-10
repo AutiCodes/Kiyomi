@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\AdminController;
+use Modules\Admin\Http\Controllers\ApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,4 +20,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('downloadFlightsGov', [AdminController::class, 'downloadFlightsGov']);
     Route::get('destroy-form/{id}', [AdminController::class, 'destroy']);
 });
+
+Route::get('get-users/{code}', [ApiController::class, 'getUsers']);
+Route::get('get-flights/{code}', [ApiController::class, 'getFlights']);
 
